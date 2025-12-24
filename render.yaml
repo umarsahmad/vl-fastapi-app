@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: vl-fastapi-app
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
