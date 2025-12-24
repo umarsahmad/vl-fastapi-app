@@ -2,13 +2,16 @@
 --index-url https://download.pytorch.org/whl/cpu
 --extra-index-url https://pypi.org/simple
 
+# The first line is for it to locate the place where it will find torch and torchvision.
+# The second line is needed because, it will search for ultralytics also in the same place as torch, but ultralytics is not a PyTorch-hosted library, it lives on the standard PyPI server.
+
 torch
 torchvision
 
 # Computer Vision & YOLO
 ultralytics
 opencv-python-headless  # Crucial: Use 'headless' to avoid installing heavy GUI/X11 libraries
-
+# numpy
 # OpenAI Tokenizer & Utilities
 tiktoken
 datetime                # Note: this is a standard library, no need to install via pip
