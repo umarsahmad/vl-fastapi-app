@@ -1,3 +1,17 @@
+# CPU-only version of Torch (much smaller and faster to install on Render)
+--index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
+
+# Computer Vision & YOLO
+ultralytics
+opencv-python-headless  # Crucial: Use 'headless' to avoid installing heavy GUI/X11 libraries
+
+# OpenAI Tokenizer & Utilities
+tiktoken
+datetime                # Note: this is a standard library, no need to install via pip
+# json                  # Note: this is a standard library, no need to install via pip
+
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart
