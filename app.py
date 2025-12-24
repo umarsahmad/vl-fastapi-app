@@ -11,6 +11,7 @@ from slm_arc import GPT, GPTConfig
 from utils import apply_lora_to_model
 import json
 from io import BytesIO
+import asyncio
 
 
 app = FastAPI(title="Simple FastAPI Test")
@@ -269,7 +270,7 @@ def load_lora_weights(model, lora_weights_path, device='cpu'):
     print(f"Loaded LoRA weights from {lora_weights_path}")
     return model
 
-def generate_answer(model, enc, question, max_tokens=100, device='cpu'):
+def generate_answer(model, enc, question, max_tokens=20, device='cpu'):
     """Generate answer for a question"""
     
     # Format the prompt (same format as training)
@@ -348,16 +349,24 @@ async def process_text(data: dict):
         raise HTTPException(status_code=503, detail="LLM model not initialized. Check logs.")
     
     input_text = data.get("text", "")
+    max_tokens = min(data.get("max_tokens", 20), 20)  # Cap at 20 tokens
     
     if not input_text:
         raise HTTPException(status_code=400, detail="No text provided")
     
     try:
         # Get max_tokens from request or use default
-        max_tokens = data.get("max_tokens", 100)
+        # max_tokens = data.get("max_tokens", 100)
         
         # Generate answer using the model
-        processed_text = generate_answer(model, enc, input_text, max_tokens=max_tokens, device=device)
+        # processed_text = generate_answer(model, enc, input_text, max_tokens=max_tokens, device=device)
+        # Run in thread pool to avoid blocking
+        loop = asyncio.get_event_loop()
+        processed_text = await loop.run_in_executor(
+            None, 
+            generate_answer, 
+            model, enc, input_text, max_tokens, device
+        )
         
         return {
             "processed_text": processed_text,
