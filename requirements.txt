@@ -16,7 +16,7 @@ opencv-python-headless  # Crucial: Use 'headless' to avoid installing heavy GUI/
 tiktoken
 datetime                # Note: this is a standard library, no need to install via pip
 # json                  # Note: this is a standard library, no need to install via pip
-
+tqdm
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-multipart
