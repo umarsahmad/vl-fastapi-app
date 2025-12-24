@@ -40,6 +40,15 @@ def home():
     """
     return HTMLResponse(content=html_content)
 
+# Add after your home() function
+@app.head("/")
+async def head_home():
+    return {}
+
+@app.head("/health")
+async def head_health():
+    return {}
+
 @app.get("/defect_gen", response_class=HTMLResponse)
 def defect_gen_page():
     html_content = """
@@ -248,9 +257,9 @@ model = None
 enc = None
 device = None
 
-def load_lora_weights(model, lora_weights_path):
+def load_lora_weights(model, lora_weights_path, device='cpu'):
     """Load LoRA weights into the model"""
-    lora_state_dict = torch.load(lora_weights_path)
+    lora_state_dict = torch.load(lora_weights_path, map_location=device)  # Add map_location
     
     # Load only LoRA parameters
     model_state_dict = model.state_dict()
@@ -260,7 +269,7 @@ def load_lora_weights(model, lora_weights_path):
     print(f"Loaded LoRA weights from {lora_weights_path}")
     return model
 
-def generate_answer(model, enc, question, max_tokens=100, device='cuda'):
+def generate_answer(model, enc, question, max_tokens=100, device='cpu'):
     """Generate answer for a question"""
     
     # Format the prompt (same format as training)
@@ -288,7 +297,7 @@ def initialize_model():
     """Initialize model once at startup"""
     global model, enc, device
     
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = 'cpu'
     print(f"Using device: {device}")
     
     # Load tokenizer
@@ -311,7 +320,7 @@ def initialize_model():
     model = apply_lora_to_model(model, rank=8, alpha=16)
     
     # Load LoRA weights
-    model = load_lora_weights(model, 'lora_weights.pt')
+    model = load_lora_weights(model, 'lora_weights.pt', device=device)
     model = model.to(device)
     model.eval()
     
