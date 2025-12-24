@@ -1,5 +1,7 @@
 # CPU-only version of Torch (much smaller and faster to install on Render)
 --index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
+
 torch
 torchvision
 
