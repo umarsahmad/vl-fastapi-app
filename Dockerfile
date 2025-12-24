@@ -17,11 +17,8 @@ COPY requirements.txt .
 # Use the CPU-only index for torch as discussed before to save space
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files
-COPY app.py .
-
-# Copy models folder
-COPY models/ models/
+# Copy ALL your project files (app.py, utils1.py, utils2.py, models/)
+COPY . .
 
 # Expose port (Render usually uses 10000, but 8000 is fine if configured)
 EXPOSE 8000
