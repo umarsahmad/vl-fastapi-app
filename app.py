@@ -1,45 +1,36 @@
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.templating import Jinja2Templates
 from utils import apply_lora_to_model
 from slm_arc import GPT, GPTConfig
 from datetime import datetime
 import os
+import torch
+import tiktoken
 import cv2
 import numpy as np
 from ultralytics import YOLO
 import json
 from io import BytesIO
 import asyncio
-import torch
-import tiktoken
+
 
 
 app = FastAPI(title="Simple FastAPI Test")
 
+# Set up Jinja2 templates
+templates = Jinja2Templates(directory="templates")
+
 # Serve HTML pages
 @app.get("/", response_class=HTMLResponse)
-def home():
-    html_content = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>FastAPI App - Home</title>
-    </head>
-    <body>
-        <h1>Welcome to FastAPI App</h1>
-        <p>Status: Running</p>
-        <p>Timestamp: """ + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + """</p>
-        
-        <h2>Available Pages:</h2>
-        <ul>
-            <li><a href="/defect_gen">Defect Detection Page</a></li>
-            <li><a href="/llm_page">LLM Processing Page</a></li>
-            <li><a href="/health">Health Check (JSON)</a></li>
-        </ul>
-    </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
+def home(request: Request):
+    return templates.TemplateResponse(
+        "home.html",
+        {
+            "request": request,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+    )
 
 # Add after your home() function
 @app.head("/")
@@ -51,169 +42,12 @@ async def head_health():
     return {}
 
 @app.get("/defect_gen", response_class=HTMLResponse)
-def defect_gen_page():
-    html_content = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Defect Detection</title>
-    </head>
-    <body>
-        <h1>Defect Detection</h1>
-        <p><a href="/">← Back to Home</a></p>
-        
-        <h2>Upload Image for Detection</h2>
-        <form id="uploadForm">
-            <input type="file" id="imageInput" accept="image/*" required>
-            <br><br>
-            <button type="submit">Submit</button>
-        </form>
-        
-        <br>
-        <div id="result" style="display:none;">
-            <h2>Results:</h2>
-            <div style="display: flex; gap: 20px;">
-                <div>
-                    <h3>Original Image:</h3>
-                    <img id="originalImage" style="max-width: 400px; border: 1px solid black;">
-                </div>
-                <div>
-                    <h3>Processed Image:</h3>
-                    <img id="processedImage" style="max-width: 400px; border: 1px solid black;">
-                </div>
-            </div>
-        </div>
-        
-        <div id="loading" style="display:none;">
-            <p>Processing image...</p>
-        </div>
-
-        <script>
-            document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const fileInput = document.getElementById('imageInput');
-                const file = fileInput.files[0];
-                
-                if (!file) {
-                    alert('Please select an image');
-                    return;
-                }
-                
-                // Show original image
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('originalImage').src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-                
-                // Show loading
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('result').style.display = 'none';
-                
-                // Upload image
-                const formData = new FormData();
-                formData.append('file', file);
-                
-                try {
-                    const response = await fetch('/process_image', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (response.ok) {
-                        const blob = await response.blob();
-                        const imageUrl = URL.createObjectURL(blob);
-                        document.getElementById('processedImage').src = imageUrl;
-                        document.getElementById('result').style.display = 'block';
-                    } else {
-                        alert('Error processing image');
-                    }
-                } catch (error) {
-                    alert('Error: ' + error.message);
-                } finally {
-                    document.getElementById('loading').style.display = 'none';
-                }
-            });
-        </script>
-    </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
+def defect_gen_page(request: Request):
+    return templates.TemplateResponse("defect_gen.html", {"request": request})
 
 @app.get("/llm_page", response_class=HTMLResponse)
-def llm_page():
-    html_content = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>LLM Processing</title>
-    </head>
-    <body>
-        <h1>LLM Text Processing</h1>
-        <p><a href="/">← Back to Home</a></p>
-        
-        <h2>Enter Text for Processing</h2>
-        <form id="textForm">
-            <textarea id="textInput" rows="5" cols="50" placeholder="Enter your text here..." required></textarea>
-            <br><br>
-            <button type="submit">Submit</button>
-        </form>
-        
-        <br>
-        <div id="result" style="display:none;">
-            <h2>Processed Result:</h2>
-            <div style="border: 1px solid black; padding: 10px; background-color: #f0f0f0;">
-                <p id="resultText"></p>
-            </div>
-        </div>
-        
-        <div id="loading" style="display:none;">
-            <p>Processing text...</p>
-        </div>
-
-        <script>
-            document.getElementById('textForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const textInput = document.getElementById('textInput').value;
-                
-                if (!textInput.trim()) {
-                    alert('Please enter some text');
-                    return;
-                }
-                
-                // Show loading
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('result').style.display = 'none';
-                
-                try {
-                    const response = await fetch('/process_text', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ text: textInput })
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        document.getElementById('resultText').textContent = data.processed_text;
-                        document.getElementById('result').style.display = 'block';
-                    } else {
-                        alert('Error processing text');
-                    }
-                } catch (error) {
-                    alert('Error: ' + error.message);
-                } finally {
-                    document.getElementById('loading').style.display = 'none';
-                }
-            });
-        </script>
-    </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
+def llm_page(request: Request):
+    return templates.TemplateResponse("llm_page.html", {"request": request})
 
 # API endpoints for processing
 @app.post("/process_image")
@@ -257,7 +91,6 @@ async def process_image(file: UploadFile = File(...)):
 model = None
 enc = None
 device = None
-
 
 
 def load_lora_weights(model, lora_weights_path, device='cpu'):
@@ -357,11 +190,6 @@ async def process_text(data: dict):
         raise HTTPException(status_code=400, detail="No text provided")
     
     try:
-        # Get max_tokens from request or use default
-        # max_tokens = data.get("max_tokens", 100)
-        
-        # Generate answer using the model
-        # processed_text = generate_answer(model, enc, input_text, max_tokens=max_tokens, device=device)
         # Run in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
         processed_text = await loop.run_in_executor(
@@ -379,7 +207,6 @@ async def process_text(data: dict):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing text: {str(e)}")
-
 
 
 @app.get("/health")
@@ -406,7 +233,3 @@ def test():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-
-
