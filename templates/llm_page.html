@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LLM Processing</title>
+</head>
+<body>
+    <h1>LLM Text Processing</h1>
+    <p><a href="/">← Back to Home</a></p>
+    
+    <h2>Enter Text for Processing</h2>
+    <form id="textForm">
+        <textarea id="textInput" rows="5" cols="50" placeholder="Enter your text here..." required></textarea>
+        <br><br>
+        <button type="submit">Submit</button>
+    </form>
+    
+    <br>
+    <div id="result" style="display:none;">
+        <h2>Processed Result:</h2>
+        <div style="border: 1px solid black; padding: 10px; background-color: #f0f0f0;">
+            <p id="resultText"></p>
+        </div>
+    </div>
+    
+    <div id="loading" style="display:none;">
+        <p>Processing text...</p>
+    </div>
+
+    <script>
+        document.getElementById('textForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const textInput = document.getElementById('textInput').value;
+            
+            if (!textInput.trim()) {
+                alert('Please enter some text');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            
+            try {
+                const response = await fetch('/process_text', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: textInput })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('resultText').textContent = data.processed_text;
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    alert('Error processing text');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

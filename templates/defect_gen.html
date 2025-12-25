@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Defect Detection</title>
+</head>
+<body>
+    <h1>Defect Detection</h1>
+    <p><a href="/">← Back to Home</a></p>
+    
+    <h2>Upload Image for Detection</h2>
+    <form id="uploadForm">
+        <input type="file" id="imageInput" accept="image/*" required>
+        <br><br>
+        <button type="submit">Submit</button>
+    </form>
+    
+    <br>
+    <div id="result" style="display:none;">
+        <h2>Results:</h2>
+        <div style="display: flex; gap: 20px;">
+            <div>
+                <h3>Original Image:</h3>
+                <img id="originalImage" style="max-width: 400px; border: 1px solid black;">
+            </div>
+            <div>
+                <h3>Processed Image:</h3>
+                <img id="processedImage" style="max-width: 400px; border: 1px solid black;">
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading" style="display:none;">
+        <p>Processing image...</p>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select an image');
+                return;
+            }
+            
+            // Show original image
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('originalImage').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            
+            // Upload image
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/process_image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const imageUrl = URL.createObjectURL(blob);
+                    document.getElementById('processedImage').src = imageUrl;
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    alert('Error processing image');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

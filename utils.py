@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
 import math
+import torch
+import tiktoken
+from slm_arc import GPT, GPTConfig
 
 
 class LoRALayer(nn.Module):
@@ -53,3 +56,71 @@ def apply_lora_to_model(model, rank=8, alpha=16, target_modules=["c_attn", "c_pr
 
 
 
+def load_lora_weights(model, lora_weights_path, device='cpu'):
+    """Load LoRA weights into the model"""
+    lora_state_dict = torch.load(lora_weights_path, map_location=device)  # Add map_location
+    
+    # Load only LoRA parameters
+    model_state_dict = model.state_dict()
+    model_state_dict.update(lora_state_dict)
+    model.load_state_dict(model_state_dict)
+    
+    print(f"Loaded LoRA weights from {lora_weights_path}")
+    return model
+
+def generate_answer(model, enc, question, max_tokens=20, device='cpu'):
+    """Generate answer for a question"""
+    
+    # Format the prompt (same format as training)
+    prompt = f"Question: {question}\nAnswer:"
+    
+    # Tokenize
+    tokens = enc.encode_ordinary(prompt)
+    context = torch.tensor(tokens).unsqueeze(0).to(device)
+    
+    # Generate
+    model.eval()
+    with torch.no_grad():
+        output = model.generate(context, max_tokens)
+    
+    # Decode
+    generated_text = enc.decode(output.squeeze().tolist())
+    
+    # Extract only the answer part
+    answer_start = generated_text.find("Answer:") + len("Answer:")
+    answer = generated_text[answer_start:].strip()
+    
+    return answer
+
+def initialize_model():
+    """Initialize model once at startup"""
+    global model, enc, device
+    
+    device = 'cpu'
+    print(f"Using device: {device}")
+    
+    # Load tokenizer
+    enc = tiktoken.get_encoding("gpt2")
+    
+    # Load base model
+    config = GPTConfig(
+        vocab_size=50257,
+        block_size=128,
+        n_layer=6,
+        n_head=6,
+        n_embd=384,
+        dropout=0.1,
+        bias=True
+    )
+    model = GPT(config)
+    model.load_state_dict(torch.load('models/best_model_params.pt', map_location=device))
+    
+    # Apply LoRA architecture
+    model = apply_lora_to_model(model, rank=8, alpha=16)
+    
+    # Load LoRA weights
+    model = load_lora_weights(model, 'lora_weights.pt', device=device)
+    model = model.to(device)
+    model.eval()
+    
+    print("Model initialized successfully!")

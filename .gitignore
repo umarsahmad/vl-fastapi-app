@@ -13,3 +13,4 @@ build/
 venv/
 ENV/
 .DS_Store
+app_single_file.py
