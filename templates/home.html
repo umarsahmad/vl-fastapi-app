@@ -2,17 +2,130 @@
 <html>
 <head>
     <title>FastAPI App - Home</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            padding: 50px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 2.8em;
+            text-align: center;
+        }
+
+        h2 {
+            color: #4a5568;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .status-info {
+            background: #f7fafc;
+            border-left: 4px solid #48bb78;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .status-info p {
+            color: #2d3748;
+            font-size: 1.1em;
+            margin: 8px 0;
+        }
+
+        .status-info p:first-child {
+            font-weight: 600;
+            color: #48bb78;
+        }
+
+        ul {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        li {
+            margin: 15px 0;
+        }
+
+        a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 1.05em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        a:active {
+            transform: translateY(0);
+        }
+
+        .json-link {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+
+        .json-link:hover {
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to FastAPI App</h1>
-    <p>Status: Running</p>
-    <p>Timestamp: {{ timestamp }}</p>
-    
-    <h2>Available Pages:</h2>
-    <ul>
-        <li><a href="/defect_gen">Defect Detection Page</a></li>
-        <li><a href="/llm_page">LLM Processing Page</a></li>
-        <li><a href="/health">Health Check (JSON)</a></li>
-    </ul>
+    <div class="container">
+        <h1>Welcome to FastAPI App</h1>
+        
+        <div class="status-info">
+            <p>Status: Running</p>
+            <p>Date: {{ timestamp }}</p>
+        </div>
+        
+        <h2>Available Pages:</h2>
+        <ul>
+            <li><a href="/defect_gen">Defect Detection Page</a></li>
+            <li><a href="/llm_page">LLM Processing Page</a></li>
+            <li><a href="/health" class="json-link">Health Check (JSON)</a></li>
+        </ul>
+    </div>
 </body>
 </html>

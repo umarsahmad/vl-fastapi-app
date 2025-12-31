@@ -2,28 +2,184 @@
 <html>
 <head>
     <title>LLM Processing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        h2 {
+            color: #4a5568;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            line-height: 1.6;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #764ba2;
+        }
+
+        .instructions {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        #result h2 {
+            margin-top: 0;
+            color: #2d3748;
+        }
+
+        .result-box {
+            border: 2px solid #e2e8f0;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        #resultText {
+            color: #2d3748;
+            line-height: 1.8;
+            font-size: 1.05em;
+            white-space: pre-wrap;
+        }
+
+        #loading {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fef5e7;
+            border-left: 4px solid #f39c12;
+            border-radius: 5px;
+            color: #856404;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.1em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>LLM Text Processing</h1>
-    <p><a href="/">← Back to Home</a></p>
-    
-    <h2>Enter Text for Processing</h2>
-    <form id="textForm">
-        <textarea id="textInput" rows="5" cols="50" placeholder="Enter your text here..." required></textarea>
-        <br><br>
-        <button type="submit">Submit</button>
-    </form>
-    
-    <br>
-    <div id="result" style="display:none;">
-        <h2>Processed Result:</h2>
-        <div style="border: 1px solid black; padding: 10px; background-color: #f0f0f0;">
-            <p id="resultText"></p>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Home</a>
+        <h1>LLM Text Processing</h1>
+        
+        <div class="instructions">
+            <h2>Enter a word from the Following into the chatbox: Courage, Motivation, Resilience, Power, Focus, Confidence, Success, Ambition, Growth</h2>
         </div>
-    </div>
-    
-    <div id="loading" style="display:none;">
-        <p>Processing text...</p>
+
+        <form id="textForm">
+            <textarea id="textInput" rows="5" placeholder="Enter your text here..." required></textarea>
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+        
+        <div id="result" style="display:none;">
+            <h2>Processed Result:</h2>
+            <div class="result-box">
+                <p id="resultText"></p>
+            </div>
+        </div>
+        
+        <div id="loading" style="display:none;">
+            <p>Processing text...</p>
+        </div>
     </div>
 
     <script>

@@ -28,7 +28,7 @@ def home(request: Request):
         "home.html",
         {
             "request": request,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": datetime.now().strftime("%Y-%m-%d")
         }
     )
 
